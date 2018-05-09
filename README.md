@@ -15,6 +15,7 @@ Copy folder gpio_server to your bin folder, or add it in PATH
 Add to your /etc/rc.local code to run gpio_server/start_server.sh
 
 # Usage
+```
 >python -m gpio_over_tcp --help
 usage: __main__.py [-h] [--host HOST] [--port PORT]
                    [-v {debug,info,warn,error,fatal}]
@@ -36,13 +37,14 @@ optional arguments:
   --port PORT           TCP port for connection
   -v {debug,info,warn,error,fatal}, --verbose {debug,info,warn,error,fatal}
                         logger level, default: error
+```
 
-
-You can create envirenment variable "GPIO_HOST" with value "host address;port"
-e.g.: export GPIO_HOST="localhost;5001", in that case you don't need to specify
+You can create envirenment variable `GPIO_HOST` with value `host address;port`
+e.g.: `export GPIO_HOST="localhost;5001"`, in that case you don't need to specify
 arguments --host and --port
 
 # Examples
+```
 > python -m gpio_over_tcp status 16 12
 pin_16(16): OUT | High
 pin_12(12): OUT | High
@@ -52,4 +54,4 @@ pin_12(12): OUT | High
 >python -m gpio_over_tcp status 16 12
 pin_16(16): OUT | Low
 pin_12(12): OUT | Low
-
+```
