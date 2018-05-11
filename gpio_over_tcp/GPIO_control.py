@@ -1,12 +1,12 @@
 import logging
-import socket as tcp
+import socket as tcp, select
 from gpio_over_tcp.GPIO_tcp_connection import Connection
 from typing import Optional
 
 
 logger = logging.getLogger('GpioControl')
 
-class GpioControl():
+class GpioControl:
     def __init__(self, initialize_pins=True, host=None, port=None, pins=None ):
         # self.pins ={'kl30': 21,
         #               'kl15': 16,
@@ -15,6 +15,7 @@ class GpioControl():
         self.pins = pins if pins is not None else dict()
         logger.debug(str(pins))
         logger.debug("{}:{}".format(host, port))
+        self.connection = None
         self.connection = Connection(host, port)
         if not self.connection.is_connected:
             logger.error("Can't establish connection with '{}:{}'".format(host, port))
@@ -74,19 +75,43 @@ class GpioControl():
             mode: ["OUT", "IN"]
             value: [0, 1]
         """
+
+        def recvall(sock, n):
+            # Helper function to recv n bytes or return None if EOF is hit
+            data = b''
+            while len(data) < n:
+                packet = sock.recv(n - len(data))
+                if not packet:
+                    return None
+                data += packet
+            return data
+
+        def clear_buff(sock):
+            while True:
+                inready, _, _ = select.select([sock], [],[],0.0)
+                if not len(inready):
+                    break
+                for s in inready:
+                    s.recv(64)
+
         if self.connection.is_connected:
+            clear_buff(self.connection.socket)
             answer = self.connection.send_command('allreadall')
             if answer == 'gpio allreadall':
                 answer = ""
-                while True:
-                    try:
-                        answer += (self.connection.socket.recv(100).decode('utf-8'))
-                    except tcp.timeout:
-                        logger.debug("TCP timeout")
-                        break
-                    except Exception as e:
-                        logger.warning(e)
-                        return None
+                # while True:
+                try:
+                    answer = (recvall(self.connection.socket, 1600)).decode('utf-8')
+                    clear_buff(self.connection.socket)
+                    #ss = self.connection.socket.recv(100)
+                    #print(ss.decode('utf-8'))
+                except tcp.timeout:
+                    logger.warning("TCP timeout")
+                    raise
+                    # break
+                except Exception as e:
+                    logger.warning(e)
+                    return None
                 ret = {}
                 for name,pin in self.pins.items():
                     found = answer.find('{} |'.format(pin))

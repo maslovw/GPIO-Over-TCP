@@ -6,7 +6,8 @@ logger = logging.getLogger('GpioConnection')
 class Connection():
     def __init__(self, host=None, port=None):
         self.socket = tcp.socket(tcp.AF_INET, tcp.SOCK_STREAM, 0)
-        self.socket.settimeout(0.5)
+        self.socket.settimeout(5)
+        self.socket.setblocking(0)
         self.is_connected = False
         if host and port:
             self.connect(host, port)
@@ -20,7 +21,12 @@ class Connection():
 
     def connect(self, host, port):
         if self.socket and not self.is_connected:
-            self.socket.connect((host, port))
+            try:
+                self.socket.connect((host, port))
+
+            except tcp.timeout:
+                logger.error('Conneciton failed {} {}'.format(host, port))
+                raise tcp.timeout("{} {}".format(host, port))
             self.is_connected = False
             try:
                 answ = self.socket.recv(7)
