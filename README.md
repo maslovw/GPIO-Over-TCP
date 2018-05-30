@@ -5,7 +5,10 @@ uses `gpio` command, client adds argument `-g` to the pin number
 
 # Requierements
 Python 3
+
+# Requierements for raspberry-pi
 RaspberryPi with socat and user permissions for /dev/gpio
+`sudo apt-get install wiringpi, socat`
 
 # Client Installation
 pip install -e .
